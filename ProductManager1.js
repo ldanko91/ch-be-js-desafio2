@@ -4,22 +4,22 @@ import { Product } from "./Product.js";
 class ProductManager extends Product {
   constructor(title, description, price, thumbnail, code, stock) {
     super(title, description, price, thumbnail, code, stock);
+    this.id = "";
     this.products = [];
-    // this.path = "./products.txt"
+    this.path = "./products.txt"
   }
 
   static addId() {
-    if (this.idAutoinc) {
-      this.idAutoinc++;
+    if (this.id) {
+      this.id++;
     } else {
-      this.idAutoinc = 1;
+      this.id = 1;
     }
-    return this.idAutoinc;
+    return this.id;
   }
 
   addProduct = async (title, description, price, thumbnail, code, stock) => {
-    // await fs.writeFile(this.path, "")
-    let cont = await fs.readFile('./products.txt', 'utf-8')
+    let cont = await fs.promises.readFile(this.path, 'utf-8')
     let aux = JSON.parse(cont)
     this.products = aux
 
@@ -45,28 +45,79 @@ class ProductManager extends Product {
       stock,
     });
 
-    console.log(this.products)
-    await fs.writeFile(this.ruta, JSON.stringify(this.products))
+    // console.log(this.products)
+    await fs.promises.writeFile(this.path, JSON.stringify(this.products))
     }
+  
+  getProducts = async () => {
+    let cont = await fs.promises.readFile(this.path, 'utf-8')
+    let aux = await JSON.parse(cont)
+    this.products = aux
+    return this.products;
   }
 
-  // getProducts() {
-  //   return this.products;
-  // }
+  getProductById = async (id) => {
+    let cont = await fs.promises.readFile(this.path, 'utf-8')
+    let aux = await JSON.parse(cont)
+    this.products = aux
+    
+    for (let i = 0; i < this.products.length; i++) {
+      if (this.products[i].id === id) {
+        return this.products[i];
+      }
+    }
+    console.log("Not found");
+  }
 
-  // getProductById(id) {
-  //   for (let i = 0; i < this.products.length; i++) {
-  //     if (this.products[i].id === id) {
-  //       return this.products[i];
-  //     }
-  //   }
-  //   console.log("Not found");
-  // }
-// }
+
+  updateProductById = async (id, title, description, price, thumbnail, code, stock) => {
+    let updatedProd = {id, title, description, price, thumbnail, code, stock}
+    let cont = await fs.promises.readFile(this.path, 'utf-8')
+    let aux = await JSON.parse(cont)
+    this.products = aux
+    let updProdIndex = this.products.findIndex(product => product.id === id)
+    this.products.splice(updProdIndex,1)
+    this.products.push(updatedProd)
+
+    let update = await fs.promises.writeFile(this.path, JSON.stringify(this.products))
+
+      }
+
+  deleteProductById = async (id) => {
+    let cont = await fs.promises.readFile(this.path, 'utf-8')
+    let aux = await JSON.parse(cont)
+    this.products = aux
+    let delProdIndex = this.products.findIndex(product => product.id === id)
+    console.log(`Se eliminará el producto con ID: ${id}`),
+    this.products.splice(delProdIndex,1)
+
+    let update = await fs.promises.writeFile(this.path, JSON.stringify(this.products))
+
+    }
+
+}
+    
+
+
+
+
+const test = async () => {
+  await productManager.addProduct("tanque", "tanque para agua de 500 L", 15000, "tanque.jpg", "tanq500l", 11);
+  await productManager.addProduct("vanitory", "vanitory de 50 cm", 22000, "vanit50.jpg", "van50std", 14);
+  await productManager.addProduct("bomba de agua", "bomba de agua de 1/2 HP", 12000, "qb60.jpg", "van50std", 55);  
+}
 
 const productManager = new ProductManager();
-productManager.addProduct("tanque", "tanque para agua de 500 L", 15000, "tanque.jpg", "tanq500l", 11); 
-// productManager.addProduct("vanitory", "vanitory de 50 cm", 22000, "vanit50.jpg", "van50std", 14);
-// productManager.addProduct("bomba de agua", "bomba de agua de 1/2 HP", 12000, "qb60.jpg", "van50std", 55);
-// console.log(productManager.getProducts());
-// console.log(productManager.getProductById(2))
+
+// Prueba 1: Cargar los productos al txt con test(). Luego comentar la función.
+test()
+
+//Prueba 2: Consulta general e individualidad con getProducts y getProductById.
+// console.table(await productManager.getProducts())
+// console.log(await productManager.getProductById(2))
+
+//Prueba 3: Editar un producto.
+// productManager.updateProductById(1, "tanque", "tanque para agua de 600 L", 18000, "tanque.jpg", "tanq600l", 18)
+
+//Prueba 4: Eliminar un producto.
+// productManager.deleteProductById(2)
